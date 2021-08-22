@@ -1,6 +1,6 @@
-# MERN Demo
+# MERN Demo FP
 
-Mongo + Fastify + React + Node
+Mongo + Fastify + React + Node + fp-ts
 
 ## Create frontend (React) project
 
@@ -20,4 +20,5 @@ npm i fastify fastify-static pino-pretty mongoose dotenv
 npm i -D typescript @types/node @types/mongoose
 npx tsc --init
 npm i -D concurrently nodemon
+npm i fp-ts
 ```
