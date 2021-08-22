@@ -1,11 +1,14 @@
 import { ITodo } from './../types/todo'
 import Todo from './../models/todo'
+import * as TE from 'fp-ts/TaskEither'
+import * as O from 'fp-ts/Option'
+import { pipe } from 'fp-ts/lib/function'
 
 interface TodoRepo {
-  getTodos(): Promise<Array<ITodo>>
-  addTodo(todoBody: ITodo): Promise<ITodo>
-  updateTodo(id: string, todoBody: ITodo): Promise<ITodo | null>
-  deleteTodo(id: string): Promise<ITodo | null>
+  getTodos(): TE.TaskEither<Error, Readonly<Array<ITodo>>>
+  addTodo(todoBody: ITodo): TE.TaskEither<Error, Readonly<ITodo>>
+  updateTodo(id: string, todoBody: ITodo): TE.TaskEither<Error, O.Option<Readonly<ITodo>>>
+  deleteTodo(id: string): TE.TaskEither<Error, O.Option<Readonly<ITodo>>>
 }
 
 class TodoRepoImpl implements TodoRepo {
@@ -15,20 +18,40 @@ class TodoRepoImpl implements TodoRepo {
     return new TodoRepoImpl()
   }
 
-  async getTodos(): Promise<Array<ITodo>> {
-    return Todo.find()
+  getTodos(): TE.TaskEither<Error, Readonly<Array<ITodo>>> {
+    return TE.tryCatch(
+      () => Todo.find().exec(),
+      (error) => new Error(`Failed to get todos: ${error}`)
+    )
   }
 
-  async addTodo(todoBody: ITodo): Promise<ITodo> {
-    return Todo.create(todoBody)
+  addTodo(todoBody: ITodo): TE.TaskEither<Error, Readonly<ITodo>> {
+    return pipe(
+      TE.tryCatch(
+        () => Todo.create(todoBody),
+        (error) => new Error(`Failed to add todo: ${error}`)
+      )
+    )
   }
 
-  async updateTodo(id: string, todoBody: ITodo): Promise<ITodo | null> {
-    return Todo.findByIdAndUpdate(id, todoBody, { new: true })
+  updateTodo(id: string, todoBody: ITodo): TE.TaskEither<Error, O.Option<Readonly<ITodo>>> {
+    return pipe(
+      TE.tryCatch(
+        () => Todo.findByIdAndUpdate(id, todoBody, { new: true }).exec(),
+        (error) => new Error(`Failed to update todo: ${error}`)
+      ),
+      TE.map((r) => (r ? O.some(r) : O.none))
+    )
   }
 
-  async deleteTodo(id: string): Promise<ITodo | null> {
-    return Todo.findByIdAndDelete(id)
+  deleteTodo(id: string): TE.TaskEither<Error, O.Option<Readonly<ITodo>>> {
+    return pipe(
+      TE.tryCatch(
+        () => Todo.findByIdAndRemove(id).exec(),
+        (error) => new Error(`Failed to delete todo: ${error}`)
+      ),
+      TE.map((r) => (r ? O.some(r) : O.none))
+    )
   }
 }
 

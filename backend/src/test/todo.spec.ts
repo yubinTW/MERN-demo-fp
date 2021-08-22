@@ -4,7 +4,6 @@ import { Server, IncomingMessage, ServerResponse } from 'http'
 import * as dbHandler from './db'
 import * as E from 'fp-ts/Either'
 import { ITodo } from '../types/todo'
-import { constTrue } from 'fp-ts/lib/function'
 
 describe('Form test', () => {
   let server: FastifyInstance<Server, IncomingMessage, ServerResponse>
